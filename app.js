@@ -1,4 +1,4 @@
-let sectionCounter = 0; 
+let sectionCounter = 0;
 
 function addUrlSection() {
     sectionCounter++;
@@ -64,14 +64,28 @@ function highlightInvalidUrls(sectionId) {
     const urls = urlTextArea.value.split("\n");
     
     // Recorrer todas las URLs y verificar si son válidas
-    const invalidUrls = urls.filter(url => !isValidUrl(url.trim()));
+    const invalidUrls = urls.map((url, index) => ({
+        url: url.trim(),
+        index: index
+    })).filter(item => !isValidUrl(item.url));
     
-    // Resaltar las URLs inválidas en amarillo y mostrar un mensaje de advertencia
+    // Resaltar las URLs inválidas
+    const lines = urlTextArea.value.split("\n");
+    let highlightedText = "";
+    lines.forEach((line, index) => {
+        if (invalidUrls.some(invalidUrl => invalidUrl.index === index)) {
+            highlightedText += `<span style="background-color: yellow">${line}</span>\n`;
+        } else {
+            highlightedText += `${line}\n`;
+        }
+    });
+
+    // Asignamos el contenido con resaltado al textarea (convertido a HTML para poder aplicar estilos)
+    urlTextArea.innerHTML = highlightedText;
+
+    // Mostrar un mensaje de advertencia si hay URLs inválidas
     if (invalidUrls.length > 0) {
-        urlTextArea.style.backgroundColor = "yellow";
         alert("Algunas URLs son incorrectas. Corrígelas antes de generar el XML.");
-    } else {
-        urlTextArea.style.backgroundColor = "white";
     }
 }
 
