@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Sitemap XML</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="header-title">Generador de Sitemap XML</h1>
+
+        <div class="ctn-botones">
+            <button id="add-section-btn" class="btn-add" onclick="addUrlSection()">Agregar Sección de URLs</button>
+            <button id="generate-btn" class="btn-submit" onclick="generateSitemap()">Generar Sitemap XML</button>
+            <button id="export-btn" class="btn-export" onclick="exportSitemap()">Exportar XML</button>
+        </div>
+
+        <div id="url-sections">
+            <!-- Aquí se agregarán las secciones de URL dinámicamente -->
+        </div>
+
+        <div class="output-section" id="output-section">
+            <h3 class="header-title">Resultado XML</h3>
+            <pre id="xml-output" class="output-pre"></pre>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
