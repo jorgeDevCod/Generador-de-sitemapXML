@@ -1,4 +1,4 @@
-let sectionCounter = 0;
+let sectionCounter = 0; 
 
 function addUrlSection() {
     sectionCounter++;
@@ -13,7 +13,7 @@ function addUrlSection() {
         <button class="btn-remove" onclick="removeSection(${sectionCounter})">Eliminar</button>
         <div class="url-group">
             <label class="form-label">Listado de URLs (una por línea)</label>
-            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com"></textarea>
+            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com" oninput="highlightInvalidUrls(${sectionCounter})"></textarea>
         </div>
         <div class="config-group">
             <div class="container-config-sup">
@@ -66,9 +66,10 @@ function highlightInvalidUrls(sectionId) {
     // Recorrer todas las URLs y verificar si son válidas
     const invalidUrls = urls.filter(url => !isValidUrl(url.trim()));
     
-    // Resaltar las URLs inválidas en amarillo
+    // Resaltar las URLs inválidas en amarillo y mostrar un mensaje de advertencia
     if (invalidUrls.length > 0) {
         urlTextArea.style.backgroundColor = "yellow";
+        alert("Algunas URLs son incorrectas. Corrígelas antes de generar el XML.");
     } else {
         urlTextArea.style.backgroundColor = "white";
     }
