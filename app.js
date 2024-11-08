@@ -13,7 +13,7 @@ function addUrlSection() {
         <button class="btn-remove" onclick="removeSection(${sectionCounter})">Eliminar</button>
         <div class="url-group">
             <label class="form-label">Listado de URLs (una por línea)</label>
-            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com" oninput="highlightInvalidUrls(${sectionCounter})"></textarea>
+            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com"></textarea>
         </div>
         <div class="config-group">
             <div class="container-config-sup">
@@ -64,28 +64,13 @@ function highlightInvalidUrls(sectionId) {
     const urls = urlTextArea.value.split("\n");
     
     // Recorrer todas las URLs y verificar si son válidas
-    const invalidUrls = urls.map((url, index) => ({
-        url: url.trim(),
-        index: index
-    })).filter(item => !isValidUrl(item.url));
+    const invalidUrls = urls.filter(url => !isValidUrl(url.trim()));
     
-    // Resaltar las URLs inválidas
-    const lines = urlTextArea.value.split("\n");
-    let highlightedText = "";
-    lines.forEach((line, index) => {
-        if (invalidUrls.some(invalidUrl => invalidUrl.index === index)) {
-            highlightedText += `<span style="background-color: yellow">${line}</span>\n`;
-        } else {
-            highlightedText += `${line}\n`;
-        }
-    });
-
-    // Asignamos el contenido con resaltado al textarea (convertido a HTML para poder aplicar estilos)
-    urlTextArea.innerHTML = highlightedText;
-
-    // Mostrar un mensaje de advertencia si hay URLs inválidas
+    // Resaltar las URLs inválidas en amarillo
     if (invalidUrls.length > 0) {
-        alert("Algunas URLs son incorrectas. Corrígelas antes de generar el XML.");
+        urlTextArea.style.backgroundColor = "yellow";
+    } else {
+        urlTextArea.style.backgroundColor = "white";
     }
 }
 
