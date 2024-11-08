@@ -1,4 +1,4 @@
-let sectionCounter = 0; 
+let sectionCounter = 0;
 
 function addUrlSection() {
     sectionCounter++;
@@ -6,8 +6,7 @@ function addUrlSection() {
     sectionDiv.classList.add("form-section");
     sectionDiv.id = `section-${sectionCounter}`;
 
-    // Obtener la fecha actual en el formato "yyyy-mm-dd"
-    const today = new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10); // Fecha actual en formato yyyy-mm-dd
 
     sectionDiv.innerHTML = `
         <button class="btn-remove" onclick="removeSection(${sectionCounter})">Eliminar</button>
@@ -45,16 +44,14 @@ function addUrlSection() {
 
 function removeSection(id) {
     const section = document.getElementById(`section-${id}`);
-    if (section) {
-        section.remove();
-    }
+    if (section) section.remove();
 }
 
 function validatePriority(sectionId) {
     const priorityInput = document.querySelector(`#section-${sectionId} .priority-input`);
     const priorityValue = parseFloat(priorityInput.value);
     if (priorityValue > 1.0) {
-        priorityInput.value = "1.0"; // Reseteamos el valor si es mayor a 1.0
+        priorityInput.value = "1.0";
         alert("La prioridad no puede ser mayor a 1.0");
     }
 }
@@ -62,16 +59,22 @@ function validatePriority(sectionId) {
 function highlightInvalidUrls(sectionId) {
     const urlTextArea = document.querySelector(`#section-${sectionId} .url-input`);
     const urls = urlTextArea.value.split("\n");
-    
-    // Recorrer todas las URLs y verificar si son válidas
+
     const invalidUrls = urls.filter(url => !isValidUrl(url.trim()));
-    
-    // Resaltar las URLs inválidas en amarillo
+
+    // Resaltar las URLs inválidas
+    urls.forEach(url => {
+        const trimmedUrl = url.trim();
+        const isInvalid = !isValidUrl(trimmedUrl);
+        const formattedUrl = urlTextArea.value.replace(trimmedUrl, `<span style="text-decoration: underline; color: yellow;">${trimmedUrl}</span>`);
+        urlTextArea.innerHTML = formattedUrl; // Subrayar en amarillo las URLs incorrectas
+    });
+
+    // Si hay URLs inválidas, marcar el fondo del textarea como amarillo
     urlTextArea.style.backgroundColor = invalidUrls.length > 0 ? "yellow" : "white";
 }
 
 function isValidUrl(url) {
-    // Comprobamos si la URL empieza con 'http://' o 'https://'
     const regex = /^(https?:\/\/)/;
     return regex.test(url);
 }
@@ -80,34 +83,40 @@ function generateSitemap() {
     const sections = document.querySelectorAll(".form-section");
     let urls = [];
 
+    let validUrls = true; // Para verificar si todas las URLs son válidas
+
     sections.forEach(section => {
         const urlsText = section.querySelector(".url-input").value.trim();
         const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
         const changefreq = section.querySelector(".frequency-select").value;
         const priority = section.querySelector(".priority-input").value;
-        
-        // Tomar la fecha seleccionada y agregarle la hora actual del sistema
         const selectedDate = section.querySelector(".lastmod-input").value;
-        
-        // Obtener la hora local de la laptop en formato HH:MM:SS
+
+        // Obtener la hora actual
         const localDate = new Date();
         const hours = String(localDate.getHours()).padStart(2, '0');
         const minutes = String(localDate.getMinutes()).padStart(2, '0');
         const seconds = String(localDate.getSeconds()).padStart(2, '0');
         const currentTime = `${hours}:${minutes}:${seconds}`;
+        const lastmod = `${selectedDate}T${currentTime}+00:00`;
 
-        const lastmod = `${selectedDate}T${currentTime}+00:00`; // Formato: 2019-07-24T16:37:54+00:00
-
+        // Verificar si todas las URLs son válidas
         sectionUrls.forEach(url => {
+            if (!isValidUrl(url.trim())) validUrls = false;
             urls.push({ url: url.trim(), changefreq, priority, lastmod });
         });
     });
+
+    // Si alguna URL es inválida, no generar el sitemap
+    if (!validUrls) {
+        alert("Hay URLs inválidas, por favor corrígelas antes de generar el sitemap.");
+        return;
+    }
 
     // Ordenar las URLs alfabéticamente
     urls.sort((a, b) => a.url.localeCompare(b.url));
 
     let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
     urls.forEach(item => {
         xmlContent += `  <url>\n`;
         xmlContent += `    <loc>${item.url}</loc>\n`;
