@@ -2,12 +2,11 @@ let sectionCounter = 0;
 
 function addUrlSection() {
     sectionCounter++;
+    const today = new Date().toISOString().slice(0, 10);
+
     const sectionDiv = document.createElement("div");
     sectionDiv.classList.add("form-section");
     sectionDiv.id = `section-${sectionCounter}`;
-
-    // Obtener la fecha actual en el formato "yyyy-mm-dd"
-    const today = new Date().toISOString().slice(0, 10);
 
     sectionDiv.innerHTML = `
         <button class="btn-remove" onclick="removeSection(${sectionCounter})">Eliminar</button>
@@ -31,7 +30,7 @@ function addUrlSection() {
                 </div>
                 <div class="ctn-inter-w-50">
                     <label class="form-label mobile">Prioridad (0.0 a 1.0)</label>
-                    <input type="text" class="form-input priority-input" placeholder="0.5" value="0.5">
+                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1">
                 </div>
             </div>
             <div class="container-config-inf">
@@ -44,51 +43,48 @@ function addUrlSection() {
 }
 
 function removeSection(id) {
-    const section = document.getElementById(`section-${id}`);
-    if (section) {
-        section.remove();
+    document.getElementById(`section-${id}`).remove();
+}
+
+function validateInputs(urlsText, priority) {
+    const urls = urlsText.split("\n").map(url => url.trim()).filter(Boolean);
+    if (urls.some(url => !/^https?:\/\/[^\s]+$/.test(url))) {
+        alert("Hay URLs incorrectas o incompletas.");
+        return false;
     }
+    if (parseFloat(priority) > 1.0) {
+        alert("La prioridad no puede ser mayor a 1.0.");
+        return false;
+    }
+    return { urls, priority: parseFloat(priority) };
 }
 
 function generateSitemap() {
     const sections = document.querySelectorAll(".form-section");
-    let urls = [];
+    let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
     sections.forEach(section => {
         const urlsText = section.querySelector(".url-input").value.trim();
-        const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
-        const changefreq = section.querySelector(".frequency-select").value;
         const priority = section.querySelector(".priority-input").value;
-        
-        // Tomar la fecha seleccionada y agregarle la hora actual del sistema
+        const changefreq = section.querySelector(".frequency-select").value;
         const selectedDate = section.querySelector(".lastmod-input").value;
-        
-        // Obtener la hora local de la laptop en formato HH:MM:SS
-        const localDate = new Date();
-        const hours = String(localDate.getHours()).padStart(2, '0');
-        const minutes = String(localDate.getMinutes()).padStart(2, '0');
-        const seconds = String(localDate.getSeconds()).padStart(2, '0');
-        const currentTime = `${hours}:${minutes}:${seconds}`;
 
-        const lastmod = `${selectedDate}T${currentTime}+00:00`; // Formato: 2019-07-24T16:37:54+00:00
+        const validation = validateInputs(urlsText, priority);
+        if (!validation) return;
 
-        sectionUrls.forEach(url => {
-            urls.push({ url: url.trim(), changefreq, priority, lastmod });
+        const { urls, priority: validatedPriority } = validation;
+
+        // Obtener la hora local actual
+        const lastmod = new Date(`${selectedDate}T${new Date().toLocaleTimeString()}`).toISOString();
+
+        urls.forEach(url => {
+            xmlContent += `  <url>\n`;
+            xmlContent += `    <loc>${url}</loc>\n`;
+            xmlContent += `    <lastmod>${lastmod}</lastmod>\n`;
+            xmlContent += `    <changefreq>${changefreq}</changefreq>\n`;
+            xmlContent += `    <priority>${validatedPriority}</priority>\n`;
+            xmlContent += `  </url>\n`;
         });
-    });
-
-    // Ordenar las URLs alfabéticamente
-    urls.sort((a, b) => a.url.localeCompare(b.url));
-
-    let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
-
-    urls.forEach(item => {
-        xmlContent += `  <url>\n`;
-        xmlContent += `    <loc>${item.url}</loc>\n`;
-        xmlContent += `    <lastmod>${item.lastmod}</lastmod>\n`;
-        xmlContent += `    <changefreq>${item.changefreq}</changefreq>\n`;
-        xmlContent += `    <priority>${item.priority}</priority>\n`;
-        xmlContent += `  </url>\n`;
     });
 
     xmlContent += "</urlset>";
