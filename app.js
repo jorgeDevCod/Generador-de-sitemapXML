@@ -1,18 +1,19 @@
-let sectionCounter = 0;
+let sectionCounter = 0; 
 
 function addUrlSection() {
     sectionCounter++;
-    const today = new Date().toISOString().slice(0, 10);
-
     const sectionDiv = document.createElement("div");
     sectionDiv.classList.add("form-section");
     sectionDiv.id = `section-${sectionCounter}`;
+
+    // Obtener la fecha actual en el formato "yyyy-mm-dd"
+    const today = new Date().toISOString().slice(0, 10);
 
     sectionDiv.innerHTML = `
         <button class="btn-remove" onclick="removeSection(${sectionCounter})">Eliminar</button>
         <div class="url-group">
             <label class="form-label">Listado de URLs (una por línea)</label>
-            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com"></textarea>
+            <textarea class="form-textarea url-input" rows="3" placeholder="https://example.com" oninput="highlightInvalidUrls(${sectionCounter})"></textarea>
         </div>
         <div class="config-group">
             <div class="container-config-sup">
@@ -30,7 +31,7 @@ function addUrlSection() {
                 </div>
                 <div class="ctn-inter-w-50">
                     <label class="form-label mobile">Prioridad (0.0 a 1.0)</label>
-                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1">
+                    <input type="text" class="form-input priority-input" placeholder="0.5" value="0.5" oninput="validatePriority(${sectionCounter})">
                 </div>
             </div>
             <div class="container-config-inf">
@@ -43,48 +44,77 @@ function addUrlSection() {
 }
 
 function removeSection(id) {
-    document.getElementById(`section-${id}`).remove();
+    const section = document.getElementById(`section-${id}`);
+    if (section) {
+        section.remove();
+    }
 }
 
-function validateInputs(urlsText, priority) {
-    const urls = urlsText.split("\n").map(url => url.trim()).filter(Boolean);
-    if (urls.some(url => !/^https?:\/\/[^\s]+$/.test(url))) {
-        alert("Hay URLs incorrectas o incompletas.");
-        return false;
+function validatePriority(sectionId) {
+    const priorityInput = document.querySelector(`#section-${sectionId} .priority-input`);
+    const priorityValue = parseFloat(priorityInput.value);
+    if (priorityValue > 1.0) {
+        priorityInput.value = "1.0"; // Reseteamos el valor si es mayor a 1.0
+        alert("La prioridad no puede ser mayor a 1.0");
     }
-    if (parseFloat(priority) > 1.0) {
-        alert("La prioridad no puede ser mayor a 1.0.");
-        return false;
-    }
-    return { urls, priority: parseFloat(priority) };
+}
+
+function highlightInvalidUrls(sectionId) {
+    const urlTextArea = document.querySelector(`#section-${sectionId} .url-input`);
+    const urls = urlTextArea.value.split("\n");
+    
+    // Recorrer todas las URLs y verificar si son válidas
+    const invalidUrls = urls.filter(url => !isValidUrl(url.trim()));
+    
+    // Resaltar las URLs inválidas en amarillo
+    urlTextArea.style.backgroundColor = invalidUrls.length > 0 ? "yellow" : "white";
+}
+
+function isValidUrl(url) {
+    // Comprobamos si la URL empieza con 'http://' o 'https://'
+    const regex = /^(https?:\/\/)/;
+    return regex.test(url);
 }
 
 function generateSitemap() {
     const sections = document.querySelectorAll(".form-section");
-    let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    let urls = [];
 
     sections.forEach(section => {
         const urlsText = section.querySelector(".url-input").value.trim();
-        const priority = section.querySelector(".priority-input").value;
+        const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
         const changefreq = section.querySelector(".frequency-select").value;
+        const priority = section.querySelector(".priority-input").value;
+        
+        // Tomar la fecha seleccionada y agregarle la hora actual del sistema
         const selectedDate = section.querySelector(".lastmod-input").value;
+        
+        // Obtener la hora local de la laptop en formato HH:MM:SS
+        const localDate = new Date();
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        const seconds = String(localDate.getSeconds()).padStart(2, '0');
+        const currentTime = `${hours}:${minutes}:${seconds}`;
 
-        const validation = validateInputs(urlsText, priority);
-        if (!validation) return;
+        const lastmod = `${selectedDate}T${currentTime}+00:00`; // Formato: 2019-07-24T16:37:54+00:00
 
-        const { urls, priority: validatedPriority } = validation;
-
-        // Obtener la hora local actual
-        const lastmod = new Date(`${selectedDate}T${new Date().toLocaleTimeString()}`).toISOString();
-
-        urls.forEach(url => {
-            xmlContent += `  <url>\n`;
-            xmlContent += `    <loc>${url}</loc>\n`;
-            xmlContent += `    <lastmod>${lastmod}</lastmod>\n`;
-            xmlContent += `    <changefreq>${changefreq}</changefreq>\n`;
-            xmlContent += `    <priority>${validatedPriority}</priority>\n`;
-            xmlContent += `  </url>\n`;
+        sectionUrls.forEach(url => {
+            urls.push({ url: url.trim(), changefreq, priority, lastmod });
         });
+    });
+
+    // Ordenar las URLs alfabéticamente
+    urls.sort((a, b) => a.url.localeCompare(b.url));
+
+    let xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+    urls.forEach(item => {
+        xmlContent += `  <url>\n`;
+        xmlContent += `    <loc>${item.url}</loc>\n`;
+        xmlContent += `    <lastmod>${item.lastmod}</lastmod>\n`;
+        xmlContent += `    <changefreq>${item.changefreq}</changefreq>\n`;
+        xmlContent += `    <priority>${item.priority}</priority>\n`;
+        xmlContent += `  </url>\n`;
     });
 
     xmlContent += "</urlset>";
