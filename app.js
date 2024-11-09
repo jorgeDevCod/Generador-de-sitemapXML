@@ -28,7 +28,7 @@ function addUrlSection() {
                 </div>
                 <div class="ctn-inter-w-50">
                     <label class="form-label mobile">Prioridad (0.0 a 1.0)</label>
-                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1" step="0.1">
+                    <input type="number" class="form-input priority-input" placeholder="1.0" value="1.0" min="0" max="1.0" step="0.1">
                 </div>
             </div>
             <div class="container-config-inf">
@@ -64,7 +64,12 @@ function generateSitemap() {
         const urlsText = section.querySelector(".url-input").value.trim();
         const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
         const changefreq = section.querySelector(".frequency-select").value;
-        let priority = parseFloat(section.querySelector(".priority-input").value) || 0.5;
+        let priority = parseFloat(section.querySelector(".priority-input").value);
+
+        // Establece prioridad máxima en 1.0
+        if (priority === 1) {
+            priority = 1.0;
+        }
 
         // Obtener lastmod con la fecha seleccionada y la hora actual de Lima
         const lastmodDate = section.querySelector(".lastmod-input").value;
@@ -104,7 +109,7 @@ function generateSitemap() {
     <loc>${item.url}</loc>
     <lastmod>${item.lastmod}</lastmod>
     <changefreq>${item.changefreq}</changefreq>
-    <priority>${item.priority}</priority>
+    <priority>${item.priority.toFixed(1)}</priority>
   </url>`).join("\n")}\n</urlset>`;
 
     document.getElementById("xml-output").textContent = xmlContent;
