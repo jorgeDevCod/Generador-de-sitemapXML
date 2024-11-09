@@ -48,6 +48,13 @@ function isValidUrl(url) {
     return /^(https?:\/\/)/.test(url);
 }
 
+// Función para obtener la fecha y hora actual en Lima, Perú (UTC-5)
+function getCurrentTimeInLima() {
+    const now = new Date();
+    now.setUTCHours(now.getUTCHours() - 5); // Ajuste para UTC-5
+    return now.toISOString().slice(0, 19) + "+00:00"; // Formato para el XML
+}
+
 function generateSitemap() {
     const sections = document.querySelectorAll(".form-section");
     let urls = [];
@@ -58,7 +65,11 @@ function generateSitemap() {
         const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
         const changefreq = section.querySelector(".frequency-select").value;
         let priority = parseFloat(section.querySelector(".priority-input").value) || 0.5;
-        const lastmod = `${section.querySelector(".lastmod-input").value}T${new Date().toISOString().slice(11, 19)}+00:00`;
+
+        // Obtener lastmod con la fecha seleccionada y la hora actual de Lima
+        const lastmodDate = section.querySelector(".lastmod-input").value;
+        const lastmodTime = getCurrentTimeInLima().slice(11); // Solo hora y minutos
+        const lastmod = `${lastmodDate}T${lastmodTime}`;
 
         // Validación de URLs y Prioridad
         const invalidUrls = sectionUrls.some(url => !isValidUrl(url.trim()));
