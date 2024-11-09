@@ -1,8 +1,9 @@
 let sectionCounter = 0;
 
+const today = new Date().toISOString().slice(0, 10);
+
 function addUrlSection() {
     sectionCounter++;
-    const today = new Date().toISOString().slice(0, 10);
     const sectionDiv = document.createElement("div");
     sectionDiv.classList.add("form-section");
     sectionDiv.id = `section-${sectionCounter}`;
@@ -48,11 +49,10 @@ function isValidUrl(url) {
     return /^(https?:\/\/)/.test(url);
 }
 
-// Función para obtener la fecha y hora actual en Lima, Perú (UTC-5)
 function getCurrentTimeInLima() {
     const now = new Date();
-    now.setUTCHours(now.getUTCHours() - 5); // Ajuste para UTC-5
-    return now.toISOString().slice(0, 19) + "+00:00"; // Formato para el XML
+    now.setUTCHours(now.getUTCHours() - 5);
+    return now.toISOString().slice(0, 19) + "+00:00";
 }
 
 function generateSitemap() {
@@ -64,31 +64,22 @@ function generateSitemap() {
         const urlsText = section.querySelector(".url-input").value.trim();
         const sectionUrls = urlsText.split("\n").filter(url => url.trim() !== "");
         const changefreq = section.querySelector(".frequency-select").value;
-        let priority = parseFloat(section.querySelector(".priority-input").value);
-
-        // Establece prioridad máxima en 1.0
-        if (priority === 1) {
-            priority = 1.0;
-        }
-
-        // Obtener lastmod con la fecha seleccionada y la hora actual de Lima
+        let priority = parseFloat(section.querySelector(".priority-input").value) || 1.0;
         const lastmodDate = section.querySelector(".lastmod-input").value;
-        const lastmodTime = getCurrentTimeInLima().slice(11); // Solo hora y minutos
+        const lastmodTime = getCurrentTimeInLima().slice(11);
         const lastmod = `${lastmodDate}T${lastmodTime}`;
 
-        // Validación de URLs y Prioridad
         const invalidUrls = sectionUrls.some(url => !isValidUrl(url.trim()));
         const invalidPriority = priority > 1.0 || priority < 0.0;
 
-        // Aplicar color dependiendo de la validez
-        section.querySelector(".url-input").style.backgroundColor = invalidUrls ? "yellow" : "white";
-        section.querySelector(".priority-input").style.backgroundColor = invalidPriority ? "yellow" : "white";
+        // Establecer color según validez
+        section.querySelector(".url-input").style.backgroundColor = invalidUrls ? "#ff4040" : "white";
+        section.querySelector(".priority-input").style.backgroundColor = invalidPriority ? "#ff4040" : "white";
 
         if (invalidUrls || invalidPriority) {
             allValid = false;
         }
 
-        // Agregar las URLs a la lista si son válidas
         sectionUrls.forEach(url => {
             if (!invalidUrls && !invalidPriority) {
                 urls.push({ url: url.trim(), changefreq, priority, lastmod });
@@ -96,13 +87,12 @@ function generateSitemap() {
         });
     });
 
-    // Mostrar mensaje de error si hay URLs o prioridades inválidas
     if (!allValid) {
         alert("No se puede generar el sitemap. Por favor, corrige todas las URLs o prioridades inválidas.");
         return;
     }
 
-    // Ordenar URLs
+    // Ordenar URLs y generar XML
     urls.sort((a, b) => a.url.localeCompare(b.url));
     const xmlContent = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(item => `
   <url>
