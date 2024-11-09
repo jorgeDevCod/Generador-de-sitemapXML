@@ -28,7 +28,7 @@ function addUrlSection() {
                 </div>
                 <div class="ctn-inter-w-50">
                     <label class="form-label mobile">Prioridad (0.0 a 1.0)</label>
-                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1" step="0.1" oninput="validatePriority(this)">
+                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1" step="0.1">
                 </div>
             </div>
             <div class="container-config-inf">
@@ -46,10 +46,6 @@ function removeSection(id) {
 
 function isValidUrl(url) {
     return /^(https?:\/\/)/.test(url);
-}
-
-function validatePriority(input) {
-    if (parseFloat(input.value) > 1) input.value = 1;
 }
 
 function generateSitemap() {
@@ -76,7 +72,7 @@ function generateSitemap() {
             allValid = false;
         }
 
-        // Agregar las URLs válidas
+        // Agregar las URLs a la lista si son válidas
         sectionUrls.forEach(url => {
             if (!invalidUrls && !invalidPriority) {
                 urls.push({ url: url.trim(), changefreq, priority, lastmod });
@@ -84,10 +80,8 @@ function generateSitemap() {
         });
     });
 
-    // Limpiar el contenido de XML si hay URLs o prioridades inválidas
+    // Mostrar mensaje de error si hay URLs o prioridades inválidas
     if (!allValid) {
-        document.getElementById("xml-output").textContent = ""; // Limpia el campo XML
-        document.getElementById("output-section").style.display = "none"; // Oculta la sección de salida
         alert("No se puede generar el sitemap. Por favor, corrige todas las URLs o prioridades inválidas.");
         return;
     }
