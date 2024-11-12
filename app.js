@@ -34,7 +34,7 @@ function addUrlSection() {
             </div>
             <div class="container-config-inf">
                 <label class="form-label">Última modificación</label>
-                <input type="date" class="form-input lastmod-input" value="${today}">
+                <input type="date" class="form-input lastmod-input" value="${today}" max="${today}">
             </div>
         </div>
     `;
