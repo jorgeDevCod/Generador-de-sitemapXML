@@ -73,8 +73,8 @@ function generateSitemap() {
         const invalidPriority = priority > 1.0 || priority < 0.0;
 
         // Establecer color según validez
-        section.querySelector(".url-input").style.backgroundColor = invalidUrls ? "#ff4040" : "white";
-        section.querySelector(".priority-input").style.backgroundColor = invalidPriority ? "#ff4040" : "white";
+        section.querySelector(".url-input").style.backgroundColor = invalidUrls ? "#e74c3c" : "white";
+        section.querySelector(".priority-input").style.backgroundColor = invalidPriority ? "#e74c3c" : "white";
 
         if (invalidUrls || invalidPriority) {
             allValid = false;
