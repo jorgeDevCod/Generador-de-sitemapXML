@@ -28,12 +28,12 @@ function addUrlSection() {
                 </div>
                 <div class="ctn-inter-w-50">
                     <label class="form-label mobile">Prioridad (0.0 a 1.0)</label>
-                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1" step="0.1">
+                    <input type="number" class="form-input priority-input" placeholder="0.5" value="0.5" min="0" max="1" step="0.1" oninput="validatePriority(this)">
                 </div>
             </div>
             <div class="container-config-inf">
                 <label class="form-label">Última modificación</label>
-                <input type="date" class="form-input lastmod-input" value="${today}">
+                <input type="date" class="form-input lastmod-input" value="${today}" max="{today}">
             </div>
         </div>
     `;
@@ -46,6 +46,10 @@ function removeSection(id) {
 
 function isValidUrl(url) {
     return /^(https?:\/\/)/.test(url);
+}
+
+function validatePriority(input) {
+    if (parseFloat(input.value) > 1) input.value = 1;
 }
 
 function generateSitemap() {
@@ -72,7 +76,7 @@ function generateSitemap() {
             allValid = false;
         }
 
-        // Agregar las URLs a la lista si son válidas
+        // Agregar las URLs válidas
         sectionUrls.forEach(url => {
             if (!invalidUrls && !invalidPriority) {
                 urls.push({ url: url.trim(), changefreq, priority, lastmod });
